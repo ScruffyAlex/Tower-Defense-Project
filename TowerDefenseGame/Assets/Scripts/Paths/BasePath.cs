@@ -25,7 +25,7 @@ public abstract class BasePath : MonoBehaviour
         RELATIVE
     }
 
-    public struct Follower
+    public class Follower
     {
         /// <summary>
         /// The object that this Follower represents
@@ -51,7 +51,7 @@ public abstract class BasePath : MonoBehaviour
         /// Creates a Follower with the object passed in with default settings: (0 progress, ABSOLUTE path, STOP endEvent, 1.0 speed)
         /// </summary>
         /// <param name="newObject">The GameObject that this Follower will represent</param>
-        Follower(GameObject newObject)
+        public Follower(GameObject newObject)
         {
             followerObject = newObject;
             pathProgress = 0;
@@ -65,7 +65,7 @@ public abstract class BasePath : MonoBehaviour
         /// </summary>
         /// <param name="newObject">The GameObject that this Follower will represent</param>
         /// <param name="newSpeed">The speed this Follower will have</param>
-        Follower(GameObject newObject, float newSpeed)
+        public Follower(GameObject newObject, float newSpeed)
         {
             followerObject = newObject;
             pathProgress = 0;
@@ -82,7 +82,7 @@ public abstract class BasePath : MonoBehaviour
         /// <param name="newBehaviour">The following behaviour this Follower will use</param>
         /// <param name="newEndEvent">The EndPathEvent this Follower will use</param>
         /// <param name="newSpeed">The speed this Follower will have</param>
-        Follower(GameObject newObject, float newPathProgress, ePathBehaviour newBehaviour, eEndPathEvent newEndEvent, float newSpeed)
+        public Follower(GameObject newObject, float newPathProgress, ePathBehaviour newBehaviour, eEndPathEvent newEndEvent, float newSpeed)
         {
             followerObject = newObject;
             pathProgress = newPathProgress;

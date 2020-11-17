@@ -9,17 +9,17 @@ public class RigidPath : BasePath
     /// <summary>
     /// Basic Line data structure to be used inside RigidPath
     /// </summary>
-    struct Line
+    public class Line
     {
         /// <summary>
         /// (x,y) of the beginning of the line in world units.
         /// </summary>
-        Vector2 firstPoint;
+        public Vector2 firstPoint;
 
         /// <summary>
         /// (x,y) of the end of the line in world units.
         /// </summary>
-        Vector2 endPoint;
+        public Vector2 endPoint;
 
 
         /// <summary>
@@ -33,11 +33,24 @@ public class RigidPath : BasePath
         }
 
         /// <summary>
+        /// Determines angle between the two points in radians
+        /// </summary>
+        public float Angle
+        {
+            get
+            {
+                float delta_x = endPoint.x - firstPoint.x;
+                float delta_y = endPoint.y - firstPoint.y;
+                return Mathf.Atan2(delta_y, delta_x);
+            }
+        }
+
+        /// <summary>
         /// Creates a new Line using points passed in in world units.
         /// </summary>
         /// <param name="fPoint">New first point</param>
         /// <param name="ePoint">New end point</param>
-        Line(Vector2 fPoint, Vector2 ePoint)
+        public Line(Vector2 fPoint, Vector2 ePoint)
         {
             firstPoint = fPoint;
             endPoint = ePoint;
@@ -47,11 +60,14 @@ public class RigidPath : BasePath
 
 
     // Properties and fields -----------------------------------------
+    [SerializeField]
+    public GameObject testFollower;
+
 
     /// <summary>
     /// A List that holds all of the lines in order
     /// </summary>
-    List<Line> lines = new List<Line>();
+    private List<Line> lines = new List<Line>();
 
     /// <summary>
     /// Property that returns the amount of lines
@@ -64,7 +80,7 @@ public class RigidPath : BasePath
     }
 
     /// <summary>
-    /// Property that returns the total length of the path
+    /// Property that returns the total length of the path in world units
     /// </summary>
     public float PathLength { 
         get
@@ -77,6 +93,8 @@ public class RigidPath : BasePath
             return totalLength;
         }
     }
+
+    // Methods ------------------------------------------------------------
 
 
 
@@ -102,9 +120,36 @@ public class RigidPath : BasePath
 
     public override void MoveAbsolute(Follower follower)
     {
-        //TODO flesh out Absolute first and test
+        Vector2 lineInfo = findLine(follower);
+        int lineIndex = (int) lineInfo.x;
+        float remainingLength = lineInfo.y;
 
-        throw new System.NotImplementedException();
+        float frameSpeed = Time.deltaTime / follower.speed;
+
+        //Debug.Log("Transition to next line:" + (frameSpeed >= remainingLength));
+
+        Vector3 newPosition = follower.followerObject.transform.position;
+        if (frameSpeed >= remainingLength)
+        {
+            frameSpeed -= remainingLength;
+            lineIndex++;
+
+            //Snaps to beginning of new line
+            newPosition.x = lines[lineIndex].firstPoint.x;
+            newPosition.y = lines[lineIndex].firstPoint.y;
+        }
+
+        float angle = lines[lineIndex].Angle;
+
+        newPosition.x = newPosition.x + Mathf.Cos(angle) * frameSpeed;
+        newPosition.y = newPosition.y + Mathf.Sin(angle) * frameSpeed;
+
+
+        follower.followerObject.transform.position = newPosition;
+
+        follower.pathProgress = follower.pathProgress+ (frameSpeed / PathLength);
+        Debug.Log("PathProgress: " + follower.pathProgress);
+        
     }
 
     public override void MoveRelative(Follower follower)
@@ -112,7 +157,23 @@ public class RigidPath : BasePath
         throw new System.NotImplementedException();
     }
 
+    /// <summary>
+    /// Calculates the length of lines from this path with the given indexes
+    /// </summary>
+    /// <param name="i1">first index</param>
+    /// <param name="i2">second index, inclusive</param>
+    /// <returns>Returns length of lines provided</returns>
+    public float returnLengthOfLines(int i1, int i2)
+    {
+        float totalLength = 0;
 
+        for (int j = i1; j <= i2; j++)
+        {
+            totalLength += lines[j].Length;
+        }
+
+        return totalLength;
+    }
 
     /// <summary>
     /// Finds the index of the line (vec.x) the gameObject is on and returns the remaining length of the line (vec.y)
@@ -153,13 +214,20 @@ public class RigidPath : BasePath
     // Start is called before the first frame update
     void Start()
     {
-        
+        lines.Add(new Line(new Vector2(0, 0), new Vector2(2, 0)));
+        lines.Add(new Line(new Vector2(2, 0), new Vector2(2, 2)));
+        lines.Add(new Line(new Vector2(2, 2), new Vector2(4, 4)));
+        lines.Add(new Line(new Vector2(4, 4), new Vector2(4, 0)));
+
+        GameObject newFollower = Instantiate(testFollower);
+        followers.Add(new Follower(newFollower, 0.0f, ePathBehaviour.ABSOLUTE, eEndPathEvent.STOP,  1.5f));
     }
 
     // Update is called once per frame
+
     void Update()
     {
-        
+        Follow();
     }
 
     public override void GetWorldPositionViaPathProgress(float pathProgress, ePathBehaviour behaviour)
