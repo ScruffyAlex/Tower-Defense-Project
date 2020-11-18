@@ -14,13 +14,12 @@ public class RigidPath : BasePath
         /// <summary>
         /// (x,y) of the beginning of the line in world units.
         /// </summary>
-        public Vector2 firstPoint;
+        public Vector2 beginPoint;
 
         /// <summary>
         /// (x,y) of the end of the line in world units.
         /// </summary>
         public Vector2 endPoint;
-
 
         /// <summary>
         /// Determines the length of the line in world units
@@ -28,7 +27,7 @@ public class RigidPath : BasePath
         public float Length {
             get
             {
-                return (endPoint - firstPoint).magnitude;
+                return (endPoint - beginPoint).magnitude;
             }
         }
 
@@ -39,8 +38,8 @@ public class RigidPath : BasePath
         {
             get
             {
-                float delta_x = endPoint.x - firstPoint.x;
-                float delta_y = endPoint.y - firstPoint.y;
+                float delta_x = endPoint.x - beginPoint.x;
+                float delta_y = endPoint.y - beginPoint.y;
                 return Mathf.Atan2(delta_y, delta_x);
             }
         }
@@ -52,7 +51,7 @@ public class RigidPath : BasePath
         /// <param name="ePoint">New end point</param>
         public Line(Vector2 fPoint, Vector2 ePoint)
         {
-            firstPoint = fPoint;
+            beginPoint = fPoint;
             endPoint = ePoint;
         } 
 
@@ -63,12 +62,16 @@ public class RigidPath : BasePath
     [SerializeField]
     public GameObject testFollower;
 
+    [SerializeField]
+    public GameObject nodesParent;
+
 
     /// <summary>
     /// A List that holds all of the lines in order
     /// </summary>
     private List<Line> lines = new List<Line>();
 
+    
     /// <summary>
     /// Property that returns the amount of lines
     /// </summary>
@@ -94,26 +97,51 @@ public class RigidPath : BasePath
         }
     }
 
+    public override Vector2 FirstPoint
+    {
+        get
+        {
+            return lines[0].beginPoint;
+        }
+    }
+    public override Vector2 LastPoint
+    {
+        get
+        {
+            return lines[lines.Count - 1].endPoint;
+        }
+    }
+
     // Methods ------------------------------------------------------------
-
-
-
     /// <summary>
     /// Will use the List of lines to create and handle the path
     /// </summary>
     /// <param name="gameObject">The GameObject that needs to follow</param>
     public override void Follow()
     {
+
         for (int i = 0; i < followers.Count; i++)
         {
-            switch (followers[i].behaviour)
+            //Only attempt to move if speed is not 0
+            if (followers[i].speed != 0)
             {
-                case ePathBehaviour.ABSOLUTE:
-                    MoveAbsolute(followers[i]);
-                    break;
-                case ePathBehaviour.RELATIVE:
-                    MoveRelative(followers[i]);
-                    break;
+                //Move follower dependent on their behavior
+                switch (followers[i].behaviour)
+                {
+                    case ePathBehaviour.ABSOLUTE:
+                        MoveAbsolute(followers[i]);
+                        break;
+                    case ePathBehaviour.RELATIVE:
+                        MoveRelative(followers[i]);
+                        break;
+                }
+
+
+                //Run EndEvent if the recent move has passed the path
+                if (followers[i].pathProgress > 1.0f || followers[i].pathProgress < 0.0f)
+                {
+                    EndEvent(followers[i]);
+                }
             }
         }
     }
@@ -124,20 +152,32 @@ public class RigidPath : BasePath
         int lineIndex = (int) lineInfo.x;
         float remainingLength = lineInfo.y;
 
-        float frameSpeed = Time.deltaTime / follower.speed;
+        float frameSpeed = follower.speed * Time.deltaTime;
+
+        if (Mathf.Sign(frameSpeed) == -1.0f) remainingLength = remainingLength - lines[lineIndex].Length;
+
 
         //Debug.Log("Transition to next line:" + (frameSpeed >= remainingLength));
 
         Vector3 newPosition = follower.followerObject.transform.position;
-        if (frameSpeed >= remainingLength)
+
+        if (Mathf.Abs(frameSpeed) >= Mathf.Abs(remainingLength))
         {
             frameSpeed -= remainingLength;
-            lineIndex++;
+            lineIndex += (int) Mathf.Sign(frameSpeed);
 
             //Snaps to beginning of new line
-            newPosition.x = lines[lineIndex].firstPoint.x;
-            newPosition.y = lines[lineIndex].firstPoint.y;
+
+            if (lineIndex >= lines.Count && lineIndex <= -1)
+            {
+                newPosition.x = lines[lineIndex].beginPoint.x;
+                newPosition.y = lines[lineIndex].beginPoint.y;
+            }
         }
+
+        follower.pathProgress = follower.pathProgress + (frameSpeed / PathLength);
+
+        if (lineIndex < 0 || lineIndex >= lines.Count) return;
 
         float angle = lines[lineIndex].Angle;
 
@@ -147,14 +187,16 @@ public class RigidPath : BasePath
 
         follower.followerObject.transform.position = newPosition;
 
-        follower.pathProgress = follower.pathProgress+ (frameSpeed / PathLength);
-        Debug.Log("PathProgress: " + follower.pathProgress);
+        
+
         
     }
 
     public override void MoveRelative(Follower follower)
     {
-        throw new System.NotImplementedException();
+        
+
+
     }
 
     /// <summary>
@@ -214,20 +256,59 @@ public class RigidPath : BasePath
     // Start is called before the first frame update
     void Start()
     {
-        lines.Add(new Line(new Vector2(0, 0), new Vector2(2, 0)));
-        lines.Add(new Line(new Vector2(2, 0), new Vector2(2, 2)));
-        lines.Add(new Line(new Vector2(2, 2), new Vector2(4, 4)));
-        lines.Add(new Line(new Vector2(4, 4), new Vector2(4, 0)));
+        if (nodesParent != null)
+        {
+            if (nodesParent.transform.childCount < 2) return;
 
-        GameObject newFollower = Instantiate(testFollower);
-        followers.Add(new Follower(newFollower, 0.0f, ePathBehaviour.ABSOLUTE, eEndPathEvent.STOP,  1.5f));
+            for (int i = 1; i < nodesParent.transform.childCount; i++)
+            {
+                Vector2 point1 = nodesParent.transform.GetChild(i - 1).gameObject.transform.position;
+                Vector2 point2 = nodesParent.transform.GetChild(i).gameObject.transform.position;
+
+                lines.Add(new Line(point1, point2));
+            }
+
+            GameObject newFollower = Instantiate(testFollower);
+            followers.Add(new Follower(newFollower, 0.0f, ePathBehaviour.ABSOLUTE, eEndPathEvent.RESTART, 2.5f));
+            Gizmos.color = Color.red;
+        }
+        else
+        {
+            //Default testing values
+            lines.Add(new Line(new Vector2(0, 0), new Vector2(2, 0)));
+            lines.Add(new Line(new Vector2(2, 0), new Vector2(2, 2)));
+            lines.Add(new Line(new Vector2(2, 2), new Vector2(4, 4)));
+            lines.Add(new Line(new Vector2(4, 4), new Vector2(4, 0)));
+
+            GameObject newFollower = Instantiate(testFollower);
+            followers.Add(new Follower(newFollower, 0.0f, ePathBehaviour.ABSOLUTE, eEndPathEvent.REVERSE, 2.5f));
+            Gizmos.color = Color.blue;
+        }
     }
 
     // Update is called once per frame
 
+    Color tempColor;
     void Update()
     {
         Follow();
+
+        Debug.Log(followers[0].speed);
+        //Debug.Log("PathProgress: " + followers[0].pathProgress);
+
+        
+        
+    }
+
+    void OnDrawGizmos()
+    {
+        Debug.Log("Drawing lines!");
+
+        for (int i = 0; i < lines.Count; i++)
+        {
+            Gizmos.DrawLine(lines[i].beginPoint, lines[i].endPoint);
+
+        }
     }
 
     public override void GetWorldPositionViaPathProgress(float pathProgress, ePathBehaviour behaviour)
@@ -235,10 +316,71 @@ public class RigidPath : BasePath
         throw new System.NotImplementedException();
     }
 
-    public override void EndEvent()
+    protected override void EndEvent(Follower follower)
     {
-        throw new System.NotImplementedException();
+        switch (follower.endEvent)
+        {
+            case eEndPathEvent.STOP:
+                StopEndEvent(follower);
+                break;
+            case eEndPathEvent.RESTART:
+                RestartEndEvent(follower);
+                break;
+            case eEndPathEvent.REVERSE:
+                ReverseEndEvent(follower);
+                break;
+        }
     }
+
+    protected override void StopEndEvent(Follower follower)
+    {
+        //Sets absolute position to one end of the path, depending on what direction they were going
+        if (follower.pathProgress > 1.0f)
+        {
+            SnapToEnd(follower);
+        } else
+        {
+            SnapToBeginning(follower);
+        }
+
+        //Set the speed to 0
+        follower.speed = 0;
+
+        
+    }
+    protected override void RestartEndEvent(Follower follower)
+    {
+        //Sets absolute position to one end of the path, depending on what direction they were going
+        if (follower.pathProgress > 1.0f)
+        {
+            SnapToBeginning(follower);
+        }
+        else
+        {
+            SnapToEnd(follower);
+        }
+
+    }
+    protected override void ReverseEndEvent(Follower follower)
+    {
+        //Make a new Vector3 position and preserve the z value
+        Vector3 newPos = follower.followerObject.transform.position;
+
+        //Sets absolute position to one end of the path, depending on what direction they were going
+        if (follower.pathProgress > 1.0f)
+        {
+            SnapToEnd(follower);
+        }
+        else
+        {
+            SnapToBeginning(follower);
+        }
+
+        //Flip the speed of the follower
+        follower.speed *= -1;
+    }
+
+    
 
    
 }

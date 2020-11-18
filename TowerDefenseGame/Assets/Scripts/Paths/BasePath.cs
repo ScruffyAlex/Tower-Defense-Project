@@ -12,8 +12,8 @@ public abstract class BasePath : MonoBehaviour
     public enum eEndPathEvent
     {
         STOP,
-        REPEAT,
-        RETURN
+        RESTART,
+        REVERSE
     }
 
     /// <summary>
@@ -48,6 +48,10 @@ public abstract class BasePath : MonoBehaviour
         /// </summary>
         public float speed;
         /// <summary>
+        /// The position the object was at when they were added to the path, used for relative pathfinding
+        /// </summary>
+        public Vector2 homePos;
+        /// <summary>
         /// Creates a Follower with the object passed in with default settings: (0 progress, ABSOLUTE path, STOP endEvent, 1.0 speed)
         /// </summary>
         /// <param name="newObject">The GameObject that this Follower will represent</param>
@@ -58,6 +62,7 @@ public abstract class BasePath : MonoBehaviour
             behaviour = BasePath.ePathBehaviour.ABSOLUTE;
             endEvent = BasePath.eEndPathEvent.STOP;
             speed = 1.0f;
+            homePos = newObject.transform.position;
         }
 
         /// <summary>
@@ -72,6 +77,7 @@ public abstract class BasePath : MonoBehaviour
             behaviour = BasePath.ePathBehaviour.ABSOLUTE;
             endEvent = BasePath.eEndPathEvent.STOP;
             speed = newSpeed;
+            homePos = newObject.transform.position;
         }
 
         /// <summary>
@@ -89,6 +95,7 @@ public abstract class BasePath : MonoBehaviour
             behaviour = newBehaviour;
             endEvent = newEndEvent;
             speed = newSpeed;
+            homePos = newObject.transform.position;
         }
     }
 
@@ -98,6 +105,17 @@ public abstract class BasePath : MonoBehaviour
     /// A list of objects using the path
     /// </summary>
     protected List<Follower> followers = new List<Follower>();
+
+    /// <summary>
+    /// Returns a Vector2 of the beginning of the path in world space, absolute
+    /// </summary>
+    abstract public Vector2 FirstPoint { get; }
+    /// <summary>
+    /// Returns a Vector2 of the end of the path in world space, absolute
+    /// </summary>
+    abstract public Vector2 LastPoint { get; }
+
+    
 
 
     // Methods -------------------------------------------------------------------------
@@ -173,9 +191,49 @@ public abstract class BasePath : MonoBehaviour
     /// </summary>
     abstract public void MoveRelative(Follower follower);
     /// <summary>
-    /// Function that handles what happens when object hits end of path
+    /// Function that handles what happens when follower hits end of path
     /// </summary>
-    abstract public void EndEvent();
+    abstract protected void EndEvent(Follower follower);
+    /// <summary>
+    /// Handles the stop Event for the follower
+    /// </summary>
+    /// <param name="follower">The follower that triggered the event</param>
+    abstract protected void StopEndEvent(Follower follower);
+    /// <summary>
+    /// Handles the Restart event for the follower
+    /// </summary>
+    /// <param name="follower">The follower that triggered the event</param>
+    abstract protected void RestartEndEvent(Follower follower);
+    /// <summary>
+    /// Handles the Reverse event for the follower
+    /// </summary>
+    /// <param name="follower">The follower that triggered the event</param>
+    abstract protected void ReverseEndEvent(Follower follower);
+
+    protected virtual void SnapToBeginning(Follower follower)
+    {
+        //Make a new Vector3 position and preserve the z value
+        Vector3 newPos = follower.followerObject.transform.position;
+        newPos.x = FirstPoint.x;
+        newPos.y = FirstPoint.y;
+        follower.pathProgress = 0.0f;
+
+        //Set the new position for the follower
+        follower.followerObject.transform.position = newPos;
+    }
+
+    protected virtual void SnapToEnd(Follower follower)
+    {
+        //Make a new Vector3 position and preserve the z value
+        Vector3 newPos = follower.followerObject.transform.position;
+        newPos.x = LastPoint.x;
+        newPos.y = LastPoint.y;
+        follower.pathProgress = 1.0f;
+
+        //Set the new position for the follower
+        follower.followerObject.transform.position = newPos;
+    }
+
 
     // Start is called before the first frame update
     void Start()
