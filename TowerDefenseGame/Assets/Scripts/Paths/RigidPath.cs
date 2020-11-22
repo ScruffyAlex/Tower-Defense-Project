@@ -65,13 +65,10 @@ public class RigidPath : BasePath
     [SerializeField]
     public GameObject nodesParent;
 
-
     /// <summary>
     /// A List that holds all of the lines in order
     /// </summary>
     private List<Line> lines = new List<Line>();
-
-    
     /// <summary>
     /// Property that returns the amount of lines
     /// </summary>
@@ -81,7 +78,6 @@ public class RigidPath : BasePath
             return lines.Count;
         }
     }
-
     /// <summary>
     /// Property that returns the total length of the path in world units
     /// </summary>
@@ -96,7 +92,6 @@ public class RigidPath : BasePath
             return totalLength;
         }
     }
-
     public override Vector2 FirstPoint
     {
         get
@@ -145,11 +140,13 @@ public class RigidPath : BasePath
             }
         }
     }
-
-    public override void MoveAbsolute(Follower follower)
+    /// <summary>
+    /// Repeated code used for both Move functions
+    /// </summary>
+    private Vector3 MoveGeneral(Follower follower)
     {
         Vector2 lineInfo = findLine(follower);
-        int lineIndex = (int) lineInfo.x;
+        int lineIndex = (int)lineInfo.x;
         float remainingLength = lineInfo.y;
 
         float frameSpeed = follower.speed * Time.deltaTime;
@@ -164,20 +161,18 @@ public class RigidPath : BasePath
         if (Mathf.Abs(frameSpeed) >= Mathf.Abs(remainingLength))
         {
             frameSpeed -= remainingLength;
-            lineIndex += (int) Mathf.Sign(frameSpeed);
+            short direction = (short) Mathf.Sign(frameSpeed);
+            lineIndex += direction;
 
             //Snaps to beginning of new line
-
-            if (lineIndex >= lines.Count && lineIndex <= -1)
-            {
-                newPosition.x = lines[lineIndex].beginPoint.x;
-                newPosition.y = lines[lineIndex].beginPoint.y;
-            }
+            float firstAngle = lines[lineIndex-direction].Angle;
+            newPosition.x = newPosition.x + Mathf.Cos(firstAngle) * remainingLength;
+            newPosition.y = newPosition.y + Mathf.Sin(firstAngle) * remainingLength;
         }
 
         follower.pathProgress = follower.pathProgress + (frameSpeed / PathLength);
 
-        if (lineIndex < 0 || lineIndex >= lines.Count) return;
+        if (lineIndex < 0 || lineIndex >= lines.Count) return newPosition;
 
         float angle = lines[lineIndex].Angle;
 
@@ -185,17 +180,25 @@ public class RigidPath : BasePath
         newPosition.y = newPosition.y + Mathf.Sin(angle) * frameSpeed;
 
 
-        follower.followerObject.transform.position = newPosition;
+        return newPosition;
+    }
 
-        
+    public override void MoveAbsolute(Follower follower)
+    {
+        //Seperated from relative just in case unique code is needed later
 
-        
+        Vector3 newPos = MoveGeneral(follower);
+
+        follower.followerObject.transform.position = newPos;
     }
 
     public override void MoveRelative(Follower follower)
     {
-        
+        //Seperated from absolute just in case unique code is needed later
 
+        Vector3 newPos = MoveGeneral(follower);
+
+        follower.followerObject.transform.position = newPos;
 
     }
 
@@ -235,7 +238,12 @@ public class RigidPath : BasePath
     /// <returns>Returns the index of the line found (vec.x) and remaining length of line (vec.y)</returns>
     public Vector2 findLine(Follower follower)
     {
-        float lengthTraveled = follower.pathProgress * PathLength;
+        return findLine(follower.pathProgress);
+    } 
+
+    public Vector2 findLine(float pathProgress)
+    {
+        float lengthTraveled = pathProgress * PathLength;
 
         for (int i = 0; i < lines.Count; i++)
         {
@@ -244,12 +252,12 @@ public class RigidPath : BasePath
             if (Mathf.Sign(lengthTraveled) == -1)
             {
                 float lineRemaining = Mathf.Abs(lengthTraveled);
-                return new Vector2(i,lineRemaining);
+                return new Vector2(i, lineRemaining);
             }
         }
 
-        return new Vector2(0,0);
-    } 
+        return new Vector2(0, 0);
+    }
 
 
 
@@ -268,8 +276,8 @@ public class RigidPath : BasePath
                 lines.Add(new Line(point1, point2));
             }
 
-            GameObject newFollower = Instantiate(testFollower);
-            followers.Add(new Follower(newFollower, 0.0f, ePathBehaviour.ABSOLUTE, eEndPathEvent.RESTART, 2.5f));
+            GameObject newFollower = Instantiate(testFollower, testFollower.transform);
+            AddFollower(new Follower(newFollower, 0.0f, ePathBehaviour.RELATIVE, eEndPathEvent.RESTART, 2.5f));
             Gizmos.color = Color.red;
         }
         else
@@ -281,7 +289,7 @@ public class RigidPath : BasePath
             lines.Add(new Line(new Vector2(4, 4), new Vector2(4, 0)));
 
             GameObject newFollower = Instantiate(testFollower);
-            followers.Add(new Follower(newFollower, 0.0f, ePathBehaviour.ABSOLUTE, eEndPathEvent.REVERSE, 2.5f));
+            AddFollower(new Follower(newFollower, 0.0f, ePathBehaviour.ABSOLUTE, eEndPathEvent.REVERSE, 2.5f));
             Gizmos.color = Color.blue;
         }
     }
@@ -293,11 +301,8 @@ public class RigidPath : BasePath
     {
         Follow();
 
-        Debug.Log(followers[0].speed);
+        //Debug.Log(followers[0].speed);
         //Debug.Log("PathProgress: " + followers[0].pathProgress);
-
-        
-        
     }
 
     void OnDrawGizmos()
@@ -311,9 +316,23 @@ public class RigidPath : BasePath
         }
     }
 
-    public override void GetWorldPositionViaPathProgress(float pathProgress, ePathBehaviour behaviour)
+    public override Vector2 GetWorldPositionViaPathProgress(float pathProgress, ePathBehaviour behaviour)
     {
-        throw new System.NotImplementedException();
+        Vector2 newCoord = (behaviour == ePathBehaviour.ABSOLUTE) ? (new Vector2(0, 0)) : (-FirstPoint);
+
+        Vector2 lineInfo = findLine(pathProgress);
+        int lineIndex = (int) lineInfo.x;
+        float remainingLength = lines[lineIndex].Length - lineInfo.y;
+
+        newCoord += lines[lineIndex].beginPoint;
+
+        float angle = lines[lineIndex].Angle;
+
+        newCoord.x = newCoord.x + Mathf.Cos(angle) * remainingLength;
+        newCoord.y = newCoord.y + Mathf.Sin(angle) * remainingLength;
+
+        return newCoord;
+
     }
 
     protected override void EndEvent(Follower follower)
@@ -331,7 +350,6 @@ public class RigidPath : BasePath
                 break;
         }
     }
-
     protected override void StopEndEvent(Follower follower)
     {
         //Sets absolute position to one end of the path, depending on what direction they were going

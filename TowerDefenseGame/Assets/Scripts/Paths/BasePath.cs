@@ -50,7 +50,7 @@ public abstract class BasePath : MonoBehaviour
         /// <summary>
         /// The position the object was at when they were added to the path, used for relative pathfinding
         /// </summary>
-        public Vector2 homePos;
+        public Vector2 relaPos;
         /// <summary>
         /// Creates a Follower with the object passed in with default settings: (0 progress, ABSOLUTE path, STOP endEvent, 1.0 speed)
         /// </summary>
@@ -62,7 +62,7 @@ public abstract class BasePath : MonoBehaviour
             behaviour = BasePath.ePathBehaviour.ABSOLUTE;
             endEvent = BasePath.eEndPathEvent.STOP;
             speed = 1.0f;
-            homePos = newObject.transform.position;
+            relaPos = newObject.transform.position;
         }
 
         /// <summary>
@@ -77,7 +77,7 @@ public abstract class BasePath : MonoBehaviour
             behaviour = BasePath.ePathBehaviour.ABSOLUTE;
             endEvent = BasePath.eEndPathEvent.STOP;
             speed = newSpeed;
-            homePos = newObject.transform.position;
+            relaPos = newObject.transform.position;
         }
 
         /// <summary>
@@ -95,7 +95,7 @@ public abstract class BasePath : MonoBehaviour
             behaviour = newBehaviour;
             endEvent = newEndEvent;
             speed = newSpeed;
-            homePos = newObject.transform.position;
+            relaPos = newObject.transform.position; //Saves home position, to be changed to actual relaPos once added to a Path
         }
     }
 
@@ -126,12 +126,20 @@ public abstract class BasePath : MonoBehaviour
     /// <param name="newFollower">The new follower to add</param>
     public void AddFollower(Follower newFollower)
     {
+        //put the new object's position where the starting position is
+        Vector3 newPos = newFollower.followerObject.transform.position;
+        Vector2 snapPos = GetWorldPositionViaPathProgress(newFollower.pathProgress, newFollower.behaviour);
+        newPos.x = snapPos.x;
+        newPos.y = snapPos.y;
+
+        //If relative, shift position based on relaPos
+        if (newFollower.behaviour == ePathBehaviour.RELATIVE) newPos += new Vector3(newFollower.relaPos.x, newFollower.relaPos.y, newPos.z);
+
+        newFollower.followerObject.transform.position = newPos;
+
+        //Add follower to the list
         followers.Add(newFollower);
-
-        //TODO put the new object's position where the starting position is
-        //newFollower.followerObject.transform.position
     }
-
     /// <summary>
     /// Removes a Follower if a match is found within the list.
     /// </summary>
@@ -156,7 +164,6 @@ public abstract class BasePath : MonoBehaviour
 
         return findFollower;
     }
-
     /// <summary>
     /// Removes a follower if match is found within the list using GameObject
     /// </summary>
@@ -172,12 +179,10 @@ public abstract class BasePath : MonoBehaviour
 
         followers.Remove(removeFollower);
     }
-
     /// <summary>
     /// Abstract function that will return the world position based on progress and follow behaviour (relative or absolute)
     /// </summary>
-    abstract public void GetWorldPositionViaPathProgress(float pathProgress, ePathBehaviour behaviour);
-
+    abstract public Vector2 GetWorldPositionViaPathProgress(float pathProgress, ePathBehaviour behaviour);
     /// <summary>
     /// Abstract function that will iterate through all of the objects the path has control of, and updates their position
     /// </summary>
@@ -209,26 +214,53 @@ public abstract class BasePath : MonoBehaviour
     /// </summary>
     /// <param name="follower">The follower that triggered the event</param>
     abstract protected void ReverseEndEvent(Follower follower);
-
+    /// <summary>
+    /// Snap the follower passed in to the beginning of the path
+    /// </summary>
+    /// <param name="follower">The follower you'd like to snap</param>
     protected virtual void SnapToBeginning(Follower follower)
     {
         //Make a new Vector3 position and preserve the z value
         Vector3 newPos = follower.followerObject.transform.position;
-        newPos.x = FirstPoint.x;
-        newPos.y = FirstPoint.y;
         follower.pathProgress = 0.0f;
+
+        if (follower.behaviour == ePathBehaviour.ABSOLUTE) {
+
+            newPos.x = FirstPoint.x;
+            newPos.y = FirstPoint.y;
+        } else
+        {
+            newPos.x = follower.relaPos.x;
+            newPos.y = follower.relaPos.y;
+        }
+
 
         //Set the new position for the follower
         follower.followerObject.transform.position = newPos;
     }
-
+    /// <summary>
+    /// Snap the follower passed in to the end of the path
+    /// </summary>
+    /// <param name="follower">The follower you'd like to snap</param>
     protected virtual void SnapToEnd(Follower follower)
     {
-        //Make a new Vector3 position and preserve the z value
+
         Vector3 newPos = follower.followerObject.transform.position;
-        newPos.x = LastPoint.x;
-        newPos.y = LastPoint.y;
         follower.pathProgress = 1.0f;
+
+        if (follower.behaviour == ePathBehaviour.ABSOLUTE)
+        {
+            newPos.x = LastPoint.x;
+            newPos.y = LastPoint.y;
+        }
+        else
+        {
+            Vector2 modPos = GetWorldPositionViaPathProgress(1.0f, ePathBehaviour.RELATIVE);
+
+            newPos.x = follower.relaPos.x + modPos.x;
+            newPos.y = follower.relaPos.y + modPos.y;
+        }
+
 
         //Set the new position for the follower
         follower.followerObject.transform.position = newPos;
