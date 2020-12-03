@@ -131,6 +131,7 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
+
 --- !u!114 &8305659544734433204
 MonoBehaviour:
   m_ObjectHideFlags: 0
