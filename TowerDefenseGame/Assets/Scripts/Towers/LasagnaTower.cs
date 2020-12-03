@@ -4,11 +4,6 @@ using UnityEngine;
 
 public class LasagnaTower : Tower
 {
-<<<<<<< Updated upstream
-    public override void Update()
-    {
-
-=======
     //public GameObject target;
     float timer = 2.5f;
     float shootSpeed = 3;
@@ -56,7 +51,7 @@ public class LasagnaTower : Tower
             Debug.Log("Shoot");
             shootTimer = shootSpeed;
         }
->>>>>>> Stashed changes
+
     }
 
     public override void Create()
@@ -71,8 +66,7 @@ public class LasagnaTower : Tower
 
     public override void Shoot()
     {
-<<<<<<< Updated upstream
-=======
+
         //Projectile projectile = new Projectile { };
         //projectile.Create(target.transform.position);
 
@@ -87,7 +81,6 @@ public class LasagnaTower : Tower
         //Component comp = target.GetComponent<BaseEnemy>();
         //gameObject.GetComponent<Projectile>().target = comp.transform;
     }
->>>>>>> Stashed changes
 
-    }
 }
+
