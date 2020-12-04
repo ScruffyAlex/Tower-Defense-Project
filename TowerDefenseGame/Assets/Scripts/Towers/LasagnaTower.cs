@@ -6,9 +6,6 @@ public class LasagnaTower : Tower
 {
     //public GameObject target;
     float timer = 2.5f;
-    float shootSpeed = 3;
-    float shootTimer = 3.0f;
-    private float range = 5;
     public GameObject projectile;
 
     List<GameObject> enemies = new List<GameObject>();
@@ -19,6 +16,7 @@ public class LasagnaTower : Tower
 
     public override void Update()
     {
+        /*
         timer -= Time.deltaTime;
         if(timer <= 0)
         {
@@ -43,12 +41,13 @@ public class LasagnaTower : Tower
             
             //timer = 2.5f;
         }
+        */
 
         shootTimer -= Time.deltaTime;
         if(shootTimer <= 0)// && target != null)
         {
             Shoot();
-            Debug.Log("Shoot");
+            //Debug.Log("Shoot");
             shootTimer = shootSpeed;
         }
 
@@ -56,7 +55,7 @@ public class LasagnaTower : Tower
 
     public override void Create()
     {
-
+        shootSpeed = 5;
     }
 
     public override void Upgrade()
