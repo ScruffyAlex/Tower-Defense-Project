@@ -7,7 +7,6 @@ public class Tower : MonoBehaviour
     protected float shootSpeed = 3.0f;
     protected float shootTimer = 1.0f;
     protected float range = 5;
-    public bool isDestroyed { get; set; } = false;
     //make a enemy variable?
     //make a projectile variable
 
