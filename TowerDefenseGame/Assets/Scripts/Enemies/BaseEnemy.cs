@@ -8,7 +8,7 @@ public class BaseEnemy : MonoBehaviour
     /// <summary>
     /// Property that stores the amount of health of the enemy
     /// </summary>
-    public int Health { get; set; }
+    public int Health { get; set; } = 10;
 
     /// <summary>
     /// Value used to determine the starting speed when attached to a path
@@ -43,6 +43,6 @@ public class BaseEnemy : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        this.transform.position += new Vector3(1, 0, 0) * Time.deltaTime;
     }
 }
