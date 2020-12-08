@@ -150,7 +150,9 @@ public class EnemyManager : MonoBehaviour
         }
     }
 
-
+    /// <summary>
+    /// Buffers the wave into a list
+    /// </summary>
     private void CreateWave()
     {
 
