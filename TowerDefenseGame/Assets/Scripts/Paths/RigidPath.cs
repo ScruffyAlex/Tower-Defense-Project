@@ -117,26 +117,33 @@ public class RigidPath : BasePath
 
         for (int i = 0; i < followers.Count; i++)
         {
-            //Only attempt to move if speed is not 0
-            if (followers[i].speed != 0)
+            //Check if enemy has not been destroyed
+            if (followers[i] != null)
             {
-                //Move follower dependent on their behavior
-                switch (followers[i].behaviour)
+                //Only attempt to move if speed is not 0
+                if (followers[i].speed != 0)
                 {
-                    case ePathBehaviour.ABSOLUTE:
-                        MoveAbsolute(followers[i]);
-                        break;
-                    case ePathBehaviour.RELATIVE:
-                        MoveRelative(followers[i]);
-                        break;
-                }
+                    //Move follower dependent on their behavior
+                    switch (followers[i].behaviour)
+                    {
+                        case ePathBehaviour.ABSOLUTE:
+                            MoveAbsolute(followers[i]);
+                            break;
+                        case ePathBehaviour.RELATIVE:
+                            MoveRelative(followers[i]);
+                            break;
+                    }
 
 
-                //Run EndEvent if the recent move has passed the path
-                if (followers[i].pathProgress > 1.0f || followers[i].pathProgress < 0.0f)
-                {
-                    EndEvent(followers[i]);
+                    //Run EndEvent if the recent move has passed the path
+                    if (followers[i].pathProgress > 1.0f || followers[i].pathProgress < 0.0f)
+                    {
+                        EndEvent(followers[i]);
+                    }
                 }
+            } else
+            {
+                followers.RemoveAt(i);
             }
         }
     }
@@ -266,12 +273,48 @@ public class RigidPath : BasePath
     {
         if (nodesParent != null)
         {
-            if (nodesParent.transform.childCount < 2) return;
+            Create(nodesParent);
+        }
+    }
 
-            for (int i = 1; i < nodesParent.transform.childCount; i++)
+    /// <summary>
+    /// Creates a path based on empty objects taken from a parent
+    /// </summary>
+    /// <param name="nodeParent">The parent of the empty game objects</param>
+    public void Create(GameObject nodeParent)
+    {
+        if (nodeParent != null)
+        {
+            if (nodeParent.transform.childCount < 2) return;
+
+            for (int i = 1; i < nodeParent.transform.childCount; i++)
             {
-                Vector2 point1 = nodesParent.transform.GetChild(i - 1).gameObject.transform.position;
-                Vector2 point2 = nodesParent.transform.GetChild(i).gameObject.transform.position;
+                Vector2 point1 = nodeParent.transform.GetChild(i - 1).gameObject.transform.position;
+                Vector2 point2 = nodeParent.transform.GetChild(i).gameObject.transform.position;
+
+                lines.Add(new Line(point1, point2));
+            }
+
+            //TEST CODE
+            //GameObject newFollower = Instantiate(testFollower, testFollower.transform);
+            //AddFollower(new Follower(newFollower, 0.0f, ePathBehaviour.RELATIVE, eEndPathEvent.RESTART, 2.5f));
+        }
+
+    }
+
+    /// <summary>
+    /// Creates a path based on a list of Vector2s
+    /// </summary>
+    /// <param name="points">The list of Vector2s</param>
+    public void Create(List<Vector2> points)
+    {
+        if (points.Count >= 3)
+        {
+
+            for (int i = 1; i < points.Count; i++)
+            {
+                Vector2 point1 = points[i - 1];
+                Vector2 point2 = points[i];
 
                 lines.Add(new Line(point1, point2));
             }
@@ -283,8 +326,6 @@ public class RigidPath : BasePath
     }
 
     // Update is called once per frame
-
-    Color tempColor;
     void Update()
     {
         Follow();
@@ -386,7 +427,4 @@ public class RigidPath : BasePath
         follower.speed *= -1;
     }
 
-    
-
-   
 }

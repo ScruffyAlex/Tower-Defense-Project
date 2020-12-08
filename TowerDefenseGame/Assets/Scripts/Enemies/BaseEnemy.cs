@@ -28,10 +28,6 @@ public class BaseEnemy : MonoBehaviour
         Damage = newDamage;
     }
 
-    //TODO 
-    //Later create a property that determines the enemy's favorite food, that will result in more damage taken.
-    //Enum might be made in towers or here in enemy, or somewhere else entirely, consult with team.
-
 
 
     // Start is called before the first frame update
@@ -43,6 +39,10 @@ public class BaseEnemy : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        if (Health <= 0)
+        {
+            Destroy(gameObject);
+            Destroy(this);
+        }
     }
 }
