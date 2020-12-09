@@ -48,6 +48,8 @@ public class PlayerManager : MonoBehaviour
 
             newTower.transform.position = new Vector3(snapPos.x, snapPos.y, -2);
 
+            GameObject.Find("TowerManager").GetComponent<TowerManager>().AddTower(newTower.GetComponent<Tower>());
+
             Money -= 5;
 
         } 
@@ -71,6 +73,8 @@ public class PlayerManager : MonoBehaviour
 
             newTower.transform.position = new Vector3(snapPos.x, snapPos.y, -2);
 
+            GameObject.Find("TowerManager").GetComponent<TowerManager>().AddTower(newTower.GetComponent<Tower>());
+
             Money -= 8;
         }
         else if (Input.GetKeyDown(KeyCode.E) && Money >= 10) {
@@ -92,6 +96,8 @@ public class PlayerManager : MonoBehaviour
             GameObject newTower = Instantiate(tower1);
 
             newTower.transform.position = new Vector3(snapPos.x, snapPos.y, -2);
+
+            GameObject.Find("TowerManager").GetComponent<TowerManager>().AddTower(newTower.GetComponent<Tower>());
 
             Money -= 10;
         }
