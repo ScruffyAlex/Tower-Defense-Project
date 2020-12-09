@@ -4,15 +4,10 @@ using UnityEngine;
 
 public class Projectile : MonoBehaviour
 {
-    public float speed = 0.01f;
-    private float deathTimer = 5;
-    private Vector3 targetDirection;
-    private Vector3 direction;
-
-    public void Awake()
-    {
-        
-    }
+    protected float speed { get; set; } = 0.01f;
+    protected float deathTimer { get; set; } = 5;
+    protected Vector3 targetDirection { get; set; }
+    private Vector3 direction { get; set; }
 
     public void Update()
     {
