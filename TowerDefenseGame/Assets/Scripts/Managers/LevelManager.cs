@@ -1,25 +1,13 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System;
-using System.Windows;
-using System.Windows.Control;
+
 
 //This is my comment :)
 
 public class LevelManager : MonoBehaviour
 {
-    public enum eState
-    {
-        Title,
-        StartGame,
-        Game,
-        GameOver
-    }
-
-    
-    public eState State { get; set; } = eState.Title;
-    
+                     
     /// <summary>
     /// This is a Game object that will represent the tile we use to build the map.
     /// SerializeField makes it so this property shows up on Unity despite it being private
@@ -40,6 +28,13 @@ public class LevelManager : MonoBehaviour
     void Start()
     {
         CreateLevel();
+
+        GameObject gameObject = new GameObject();
+
+        gameObject.AddComponent<RigidPath>();
+        RigidPath path = gameObject.GetComponent<RigidPath>();
+        List<Vector2> points = { (0,0), (4,5), (6, 6), (8,8) };
+        path.Create(points);
     }
 
     /// <summary>
@@ -47,26 +42,7 @@ public class LevelManager : MonoBehaviour
     /// </summary>
     void Update()
     {
-        switch (State)
-        {
-            case eState.Title:
-                if(InputSystem.Instance.GetKeyState(InputSystem.eKey.Space))
-                {
-                    State = eState.StartGame;
-                }
-                break;
-            case eState.StartGame:
-                if()
-                break;
-            case eState.Game:
-
-                break;
-            case eState.GameOver:
-
-                break;
-            default:
-                break;
-        }
+        
     }
 
     /// <summary>
