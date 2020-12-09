@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+
 //This is my comment :)
 
 public class LevelManager : MonoBehaviour
 {
+                     
     /// <summary>
     /// This is a Game object that will represent the tile we use to build the map.
     /// SerializeField makes it so this property shows up on Unity despite it being private
@@ -26,6 +28,13 @@ public class LevelManager : MonoBehaviour
     void Start()
     {
         CreateLevel();
+
+        GameObject gameObject = new GameObject();
+
+        gameObject.AddComponent<RigidPath>();
+        RigidPath path = gameObject.GetComponent<RigidPath>();
+        List<Vector2> points = { (0,0), (4,5), (6, 6), (8,8) };
+        path.Create(points);
     }
 
     /// <summary>
