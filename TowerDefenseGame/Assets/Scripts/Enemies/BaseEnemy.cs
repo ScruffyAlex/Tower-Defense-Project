@@ -42,6 +42,7 @@ public class BaseEnemy : MonoBehaviour
 
         if (Health <= 0)
         {
+            GameObject.Find("PlayerManager").GetComponent<PlayerManager>().Money += 1;
             Destroy(gameObject);
             Destroy(this);
         }
