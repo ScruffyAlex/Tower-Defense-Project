@@ -39,6 +39,14 @@ public class BaseEnemy : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        Vector2 position = new Vector2(gameObject.transform.position.x, gameObject.transform.position.y);
+
+        float dx = Mathf.Abs(9.5f - position.x);
+        float dy = Mathf.Abs(0.5f - position.y);
+        if (dx < 0.3f && dy < 0.3f)
+        {
+            UnityEditor.EditorApplication.isPlaying = false;
+        }
 
         if (Health <= 0)
         {

@@ -118,7 +118,7 @@ public class RigidPath : BasePath
         for (int i = 0; i < followers.Count; i++)
         {
             //Check if enemy has not been destroyed
-            if (followers[i] != null)
+            if (followers[i].followerObject != null)
             {
                 //Only attempt to move if speed is not 0
                 if (followers[i].speed != 0)

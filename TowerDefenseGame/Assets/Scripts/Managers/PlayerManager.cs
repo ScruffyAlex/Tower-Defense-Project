@@ -52,8 +52,9 @@ public class PlayerManager : MonoBehaviour
 
             Money -= 5;
 
-        } 
-        else if (Input.GetKeyDown(KeyCode.W) && Money >= 8) {
+        }
+        else if (Input.GetKeyDown(KeyCode.W) && Money >= 8)
+        {
             GameObject[] towers = GameObject.FindGameObjectsWithTag("Tower");
 
             Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
@@ -69,7 +70,7 @@ public class PlayerManager : MonoBehaviour
                 if (g.transform.position == snapPos) return;
             }
 
-            GameObject newTower = Instantiate(tower1);
+            GameObject newTower = Instantiate(tower2);
 
             newTower.transform.position = new Vector3(snapPos.x, snapPos.y, -2);
 
@@ -77,7 +78,8 @@ public class PlayerManager : MonoBehaviour
 
             Money -= 8;
         }
-        else if (Input.GetKeyDown(KeyCode.E) && Money >= 10) {
+        else if (Input.GetKeyDown(KeyCode.E) && Money >= 10)
+        {
             GameObject[] towers = GameObject.FindGameObjectsWithTag("Tower");
 
             Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
@@ -93,7 +95,7 @@ public class PlayerManager : MonoBehaviour
                 if (g.transform.position == snapPos) return;
             }
 
-            GameObject newTower = Instantiate(tower1);
+            GameObject newTower = Instantiate(tower3);
 
             newTower.transform.position = new Vector3(snapPos.x, snapPos.y, -2);
 

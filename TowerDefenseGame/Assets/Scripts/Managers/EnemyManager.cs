@@ -7,8 +7,6 @@ public class EnemyManager : MonoBehaviour
 {
     //Put enemies in descending order point wise
     enum eEnemy {
-        ENEMY5 = 20,
-        ENEMY4 = 10,
         ENEMY3 = 5,
         ENEMY2 = 3,
         ENEMY1 = 1
@@ -19,13 +17,20 @@ public class EnemyManager : MonoBehaviour
     /// <summary>
     /// The paths this manager will spawn things on will be adaptive to how many inserted into the list
     /// </summary>
-    List<BasePath> paths = new List<BasePath>();
+    public List<BasePath> paths = new List<BasePath>();
 
     /// <summary>
     /// A field to help testing
     /// </summary>
     [SerializeField]
     BasePath newPath;
+
+    [SerializeField]
+    GameObject enemy1;
+    [SerializeField]
+    GameObject enemy2;
+    [SerializeField]
+    GameObject enemy3;
 
     /// <summary>
     /// A list of all the enemies part of the wave
@@ -45,12 +50,12 @@ public class EnemyManager : MonoBehaviour
     /// <summary>
     /// How long the wave will last in seconds
     /// </summary>
-    private float waveTime = 8;
+    private float waveTime = 6;
 
     /// <summary>
     /// How longer each wave will get as the waves continue
     /// </summary>
-    private float waveTimeAdd = 1.2f;
+    private float waveTimeAdd = 0.1f;
 
     /// <summary>
     /// The time between each enemy spawning
@@ -88,10 +93,9 @@ public class EnemyManager : MonoBehaviour
     void Start()
     {
         //If difficulty is made later, change this to use that
-        waveValue = 15;
-        waveAdd = 5;
+        waveValue = 5;
+        waveAdd = 4;
 
-        paths.Add(newPath);
 
     }
 
@@ -189,60 +193,45 @@ public class EnemyManager : MonoBehaviour
 
         GameObject newEnemy;
         BaseEnemy values;
-        switch(enemy)
+        BoxCollider2D gameObject;
+        switch (enemy)
         {
             case eEnemy.ENEMY1:
-                newEnemy = new GameObject();
-                newEnemy.transform.position = new Vector3(0,0,-20);
-                AddPixelSprite(newEnemy, new Color(255, 0, 0));
+                newEnemy = Instantiate(enemy1);
+                newEnemy.transform.position = new Vector3(100,100,-20);
+                //AddPixelSprite(newEnemy, new Color(255, 0, 0));
                 values = newEnemy.AddComponent<BaseEnemy>();
-                values.Health = 3;
+                gameObject = newEnemy.AddComponent<BoxCollider2D>();
+                gameObject.isTrigger = true;
+                values.Health = 1;
                 values.Damage = 3;
                 values.startSpeed = 2.5f;
 
                 enemies.Add(newEnemy);
                 break;
             case eEnemy.ENEMY2:
-                newEnemy = new GameObject();
-                newEnemy.transform.position = new Vector3(0, 0, -20);
-                AddPixelSprite(newEnemy, new Color(0, 0, 255));
+                newEnemy = Instantiate(enemy2);
+                newEnemy.transform.position = new Vector3(100, 100, -20);
+                //AddPixelSprite(newEnemy, new Color(0, 0, 255));
                 values = newEnemy.AddComponent<BaseEnemy>();
-                values.Health = 10;
+                gameObject = newEnemy.AddComponent<BoxCollider2D>();
+                gameObject.isTrigger = true;
+                values.Health = 4;
                 values.Damage = 6;
                 values.startSpeed = 2.0f;
 
                 enemies.Add(newEnemy);
                 break;
             case eEnemy.ENEMY3:
-                newEnemy = new GameObject();
-                newEnemy.transform.position = new Vector3(0, 0, -20);
-                AddPixelSprite(newEnemy, new Color(0, 255, 0));
+                newEnemy = Instantiate(enemy3);
+                newEnemy.transform.position = new Vector3(100, 100, -20);
+                //AddPixelSprite(newEnemy, new Color(0, 255, 0));
                 values = newEnemy.AddComponent<BaseEnemy>();
-                values.Health = 20;
+                gameObject = newEnemy.AddComponent<BoxCollider2D>();
+                gameObject.isTrigger = true;
+                values.Health = 8;
                 values.Damage = 15;
                 values.startSpeed = 2.0f;
-
-                enemies.Add(newEnemy);
-                break;
-            case eEnemy.ENEMY4:
-                newEnemy = new GameObject();
-                newEnemy.transform.position = new Vector3(0, 0, -20);
-                AddPixelSprite(newEnemy, new Color(0, 255, 255));
-                values = newEnemy.AddComponent<BaseEnemy>();
-                values.Health = 40;
-                values.Damage = 20;
-                values.startSpeed = 2.0f;
-
-                enemies.Add(newEnemy);
-                break;
-            case eEnemy.ENEMY5:
-                newEnemy = new GameObject();
-                newEnemy.transform.position = new Vector3(0, 0, -20);
-                AddPixelSprite(newEnemy, new Color(255, 0, 255));
-                values = newEnemy.AddComponent<BaseEnemy>();
-                values.Health = 100;
-                values.Damage = 30;
-                values.startSpeed = 1.2f;
 
                 enemies.Add(newEnemy);
                 break;

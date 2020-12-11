@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class LasagnaTower : Tower
+public class GrillTower : Tower
 {
     public override void Update()
     {
@@ -12,7 +12,7 @@ public class LasagnaTower : Tower
     public override void Create()
     {
         shootSpeed = 2;
-        range = 2;
+        range = 4;
         base.Create();
     }
 

@@ -26,7 +26,10 @@ public class TowerManager : MonoBehaviour
 
     public void AddTower(Tower tower)
     {
-        tower.Create();
-        newTowers.Add(tower);
+        if (tower != null)
+        {
+            tower.Create();
+            newTowers.Add(tower);
+        }
     }
 }
