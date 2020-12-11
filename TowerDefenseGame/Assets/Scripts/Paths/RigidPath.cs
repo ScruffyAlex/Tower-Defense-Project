@@ -276,9 +276,21 @@ public class RigidPath : BasePath
                 lines.Add(new Line(point1, point2));
             }
 
-            //TEST CODE
-            //GameObject newFollower = Instantiate(testFollower, testFollower.transform);
-            //AddFollower(new Follower(newFollower, 0.0f, ePathBehaviour.RELATIVE, eEndPathEvent.RESTART, 2.5f));
+            GameObject newFollower = Instantiate(testFollower, testFollower.transform);
+            AddFollower(new Follower(newFollower, 0.0f, ePathBehaviour.RELATIVE, eEndPathEvent.RESTART, 2.5f));
+            Gizmos.color = Color.red;
+        }
+        else
+        {
+            //Default testing values
+            lines.Add(new Line(new Vector2(0, 0), new Vector2(2, 0)));
+            lines.Add(new Line(new Vector2(2, 0), new Vector2(2, 2)));
+            lines.Add(new Line(new Vector2(2, 2), new Vector2(4, 4)));
+            lines.Add(new Line(new Vector2(4, 4), new Vector2(4, 0)));
+
+            GameObject newFollower = Instantiate(testFollower);
+            AddFollower(new Follower(newFollower, 0.0f, ePathBehaviour.ABSOLUTE, eEndPathEvent.REVERSE, 2.5f));
+            Gizmos.color = Color.blue;
         }
     }
 
